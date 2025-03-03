@@ -1,0 +1,24 @@
+{
+  "name": "fullstackopen-part8-library-backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/JoeHsiao/FullstackOpen-part8-library-backend#readme",
+  "bugs": {
+    "url": "https://github.com/JoeHsiao/FullstackOpen-part8-library-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoeHsiao/FullstackOpen-part8-library-backend.git"
+  },
+  "license": "ISC",
+  "author": "Joe Hsiao",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.3",
+    "graphql": "^16.10.0"
+  }
+}
