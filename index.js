@@ -1,6 +1,5 @@
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
-const { nanoid } = require('nanoid')
 const mongoose = require('mongoose')
 require('dotenv').config()
 
@@ -148,28 +147,27 @@ const typeDefs = `
     authorCount: Int
     allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
-    
   }
 `
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
-    allBooks: (root, args) => {
-      let result = books
+    bookCount: async () => await Book.countDocuments({}),
+    authorCount: async () => await Author.countDocuments({}),
+    allBooks: async (root, args) => {
+      const bookQuery = {}
       if (args.author) {
-        result = result.filter(b => b.author === args.author)
+        bookQuery.author = args.author
       }
       if (args.genre) {
-        result = result.filter(b => b.genres.includes(args.genre))
+        bookQuery.genres = args.genre
       }
-      return result
+      return await Book.find(bookQuery).populate('author')
     },
-    allAuthors: () => authors,
+    allAuthors: async () => await Author.find({}),
   },
   Author: {
-    bookCount: (root) => {
-      return books.filter(b => b.author === root.name).length
+    bookCount: async (root) => {
+      return await Book.countDocuments({ author: root.id })
     }
   },
   Mutation: {
@@ -182,13 +180,18 @@ const resolvers = {
       await book.save()
       return book
     },
-    editAuthor: (root, args) => {
-      const author = authors.find(x => x.name === args.name)
+    editAuthor: async (root, args) => {
+      const author = await Author.findOne({ name: args.name })
       if (!author) {
-        return null
+        throw new GraphQLError('Edit author born failed', {
+          extensions: {
+            code: 'AUTHOR_NOT_FOUND',
+            invalidArgs: args.name
+          }
+        })
       }
       author.born = args.setBornTo
-      return author
+      return await author.save()
     }
   }
 }
