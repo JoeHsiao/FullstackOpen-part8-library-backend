@@ -22,6 +22,7 @@
     "@apollo/server": "^4.11.3",
     "dotenv": "^16.4.7",
     "graphql": "^16.10.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
     "mongoose-unique-validator": "github:mongoose-unique-validator/mongoose-unique-validator"
   },
