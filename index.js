@@ -16,6 +16,7 @@ mongoose.connect(MONGODB_URI)
 
 const Book = require('./models/book')
 const Author = require('./models/author')
+const { GraphQLError } = require('graphql')
 
 const typeDefs = `
   type Book {
@@ -77,11 +78,33 @@ const resolvers = {
   Mutation: {
     addBook: async (root, args) => {
       const existingAuthor = await Author.findOne({ name: args.author })
-      const author = existingAuthor
-        ? existingAuthor
-        : await new Author({ name: args.author }).save()
+      const author = existingAuthor || await (async () => {
+        try {
+          return await new Author({ name: args.author }).save()
+        } catch (error) {
+          throw new GraphQLError('Creating user failed', {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              invalidArgs: args.author,
+              error
+            }
+          })
+        }
+      })()
+
       const book = new Book({ ...args, author: author })
-      await book.save()
+      console.log(author)
+      try {
+        await book.save()
+      } catch (error) {
+        throw new GraphQLError('Creating book failed', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args.title,
+            error
+          }
+        })
+      }
       return book
     },
     editAuthor: async (root, args) => {
@@ -90,7 +113,7 @@ const resolvers = {
         throw new GraphQLError('Edit author born failed', {
           extensions: {
             code: 'AUTHOR_NOT_FOUND',
-            invalidArgs: args.name
+            invalidArgs: args.name,
           }
         })
       }
