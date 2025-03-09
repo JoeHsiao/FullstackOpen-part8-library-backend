@@ -22,6 +22,7 @@ const typeDefs = `
     id: ID!
     born: Int
     bookCount: Int
+    authorOf: [Book!]
   }
 
   type Mutation {

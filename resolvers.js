@@ -29,7 +29,8 @@ const resolvers = {
   },
   Author: {
     bookCount: async (root) => {
-      return await Book.countDocuments({ author: root.id })
+      // return await Book.countDocuments({ author: root.id })
+      return root.authorOf.length
     }
   },
   Mutation: {
@@ -57,14 +58,26 @@ const resolvers = {
         }
       })()
 
-      const book = new Book({ ...args, author: author })
+      const book = await (async () => {
+        try {
+          return await new Book({ ...args, author: author }).save()
+        } catch (error) {
+          throw new GraphQLError('Creating book failed', {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              invalidArgs: args.title,
+              error
+            }
+          })
+        }
+      })()
+
       try {
-        await book.save()
+        await Author.findOneAndUpdate({ _id: author._id }, { authorOf: author.authorOf.concat(book) })
       } catch (error) {
-        throw new GraphQLError('Creating book failed', {
+        throw new GraphQLError('Add book to authorOf failed', {
           extensions: {
-            code: 'BAD_USER_INPUT',
-            invalidArgs: args.title,
+            code: 'INTERNAL_ERROR',
             error
           }
         })
